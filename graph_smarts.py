@@ -7,8 +7,11 @@ import numpy as np
 
 import sklearn
 from sklearn.model_selection import KFold
-from sklearn.cross_decomposition import PLSRegression
-from sklearn.linear_model import LinearRegression, Lasso
+from sklearn.cross_decomposition import PLSRegression, CCA, PLSCanonical
+from sklearn.linear_model import LinearRegression, Lasso, RANSACRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.isotonic import IsotonicRegression
 
 from sklearn.metrics import r2_score
 
@@ -46,12 +49,21 @@ graph_features = []
 
 ursi_ids = df1.iloc[:, 0]
 
-pls = PLSRegression()
+
 linreg = LinearRegression(normalize=True)
 lasso = Lasso(fit_intercept=True, normalize=True)
+ransac = RANSACRegressor()
 
-classifiers = [pls, linreg, lasso]
-classifier_names = ['LR', 'PLS', 'Lasso']
+pls = PLSRegression()
+cca = CCA()
+pls_ca = PLSCanonical()
+
+rf = RandomForestRegressor(n_estimators=50, n_jobs=4)
+gp = GaussianProcessRegressor()
+ir = IsotonicRegression()
+
+classifiers = [linreg, lasso, ransac, pls, cca, pls_ca, rf, gp, ir]
+classifier_names = ['LR', 'Lasso', 'RANSAC', 'PLS', 'CCA', 'PLSCa', 'RF', 'GP', 'IR']
 
 r = {}
 for graphtype in graphtypes:
@@ -122,7 +134,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
         model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_loss", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
 
         model = deep_mlp(n_roi)
-        model.compile('adam', 'mse', metrics=['accuracy'])
+        model.compile('adam', 'mse', metrics=['mean_absolute_percentage_error', 'mean_squared_error'])
         model.fit(x_train, y_train, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint])
 
         model.load_weights(root_dir + 'best_model.hdf5')

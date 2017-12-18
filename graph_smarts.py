@@ -14,15 +14,16 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.isotonic import IsotonicRegression
 
 from sklearn.metrics import r2_score
+from sklearn.preprocessing import normalize, MinMaxScaler
 
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-from deep_stuff import deep_mlp
+from deep_stuff import deep_mlp, lr_scheduler
 from keras.callbacks import ModelCheckpoint
-from keras.models import load_model
+from keras.optimizers import Adam
 
 
 root_dir = 'E:/brains/graphs/'
@@ -30,8 +31,8 @@ targets_file_1 = 'Templeton114.csv'
 targets_file_2 = 'Templeton255.csv'
 
 
-graphtypes = ['AAL', 'desikan', 'CPAC200']
-rois = [116, 70, 200]
+graphtypes = ['AAL', 'desikan', 'CPAC200', 'HarvardOxford', 'JHU']
+rois = [116, 70, 200, 111, 48]
 
 
 df1 = pd.read_csv(root_dir + targets_file_1, index_col=0)
@@ -62,8 +63,8 @@ rf = RandomForestRegressor(n_estimators=50, n_jobs=4)
 gp = GaussianProcessRegressor()
 ir = IsotonicRegression()
 
-classifiers = [linreg, lasso, ransac, pls, cca, pls_ca, rf, gp, ir]
-classifier_names = ['LR', 'Lasso', 'RANSAC', 'PLS', 'CCA', 'PLSCa', 'RF', 'GP', 'IR']
+classifiers = [linreg, lasso, pls, cca, pls_ca, rf, gp]
+classifier_names = ['LR', 'Lasso', 'PLS', 'CCA', 'PLSCa', 'RF', 'GP']
 
 r = {}
 for graphtype in graphtypes:
@@ -94,7 +95,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
             graph_data = np.load(root_dir + graphtype + '/' + graph_filename)
             # print('graph shape:', graph_data.shape)
 
-            g = nx.Graph(graph_data)
+            # g = nx.Graph(graph_data)
 
             # rich_coeff = nx.rich_club_coefficient()
 
@@ -112,6 +113,9 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
     # print(i, 'subjects')
 
+    mms = MinMaxScaler()
+    x = mms.fit_transform(x)
+    # x = normalize(x, axis=0)
 
     kf = KFold(n_splits=10)
 
@@ -130,12 +134,14 @@ for graphtype, n_roi in zip(graphtypes, rois):
         # print('nans:', np.sum(np.isnan(y_train)))
         # print('infs:', np.sum(np.isinf(y_train)))
 
+        model = deep_mlp(n_roi)
 
         model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_loss", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
+        lr_sched = lr_scheduler(model)
 
-        model = deep_mlp(n_roi)
-        model.compile('adam', 'mse', metrics=['mean_absolute_percentage_error', 'mean_squared_error'])
-        model.fit(x_train, y_train, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint])
+        adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        model.compile(adam, 'mse', metrics=['mean_absolute_percentage_error', 'mean_squared_error'])
+        model.fit(x_train, y_train, epochs=500, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
         model.load_weights(root_dir + 'best_model.hdf5')
 
@@ -145,9 +151,12 @@ for graphtype, n_roi in zip(graphtypes, rois):
         r2 = r2_score(actual, predictions)
         r[graphtype]['deep'].append(r2)
 
+        print('deep', r2)
         for classifier, name in zip(classifiers, classifier_names):
             classifier.fit(x_train, y_train)
-            r[graphtype][name].append(classifier.score(x_test, y_test))
+            score = classifier.score(x_test, y_test)
+            print(name, score)
+            r[graphtype][name].append(score)
 
 
 for graphtype in graphtypes:
@@ -155,32 +164,33 @@ for graphtype in graphtypes:
     for name in classifier_names + ['deep']:
         print(name, np.mean(r[graphtype][name]), np.std(r[graphtype][name]))
 
-scores = []
-score_labels = []
-
 
 for graphtype in graphtypes:
+    scores = []
+    score_labels = []
+
     for name in classifier_names + ['deep']:
         scores.append(r[graphtype][name])
         score_labels.append(name)
 
+    plt.close()
+    plt.figure(figsize=(24, 9))
+    bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
 
-plt.figure(figsize=(12, 9))
-bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
+    plt.xticks(np.arange(1, len(scores)+1), score_labels, rotation=0, horizontalalignment='center', fontsize=20)
+    plt.yticks(np.arange(0, 10), np.arange(0., 1.), fontsize=20)
+    plt.grid(zorder=0)
+    plt.xlim(0, len(scores) + 1)
+    plt.ylim(0, 1)
 
-plt.xticks(np.arange(1, len(scores)+1), score_labels, rotation=0, horizontalalignment='center', fontsize=20)
-plt.grid(zorder=0)
-plt.xlim(0, len(scores) + 1)
-plt.ylim(0, 1)
+    colors = ['lightcoral', 'pink', 'fuchsia', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
 
-colors = ['pink', 'red', 'darkred', 'firebrick', 'pink', 'red', 'darkred', 'firebrick', 'pink', 'red', 'darkred', 'firebrick']
+    for patch, color in zip(bplot['boxes'], colors):
+        patch.set_facecolor(color)
 
-for patch, color in zip(bplot['boxes'], colors):
-    patch.set_facecolor(color)
+    plt.xlabel('Classifier', fontsize=24)
+    plt.ylabel('$r^2$', fontsize=24)
+    plt.tight_layout()
 
-plt.xlabel('Classifier', fontsize=24)
-plt.ylabel('$r^2$', fontsize=24)
-plt.tight_layout()
-
-results_dir = root_dir
-plt.savefig(results_dir + 'metrics_boxplot.png')
+    results_dir = root_dir + '/results/'
+    plt.savefig(results_dir + graphtype + '_boxplot.png')

@@ -10,25 +10,24 @@ from keras.callbacks import LearningRateScheduler
 def deep_mlp(input_dims):
     model = Sequential()
 
-
     model.add(Dense(64, activation='sigmoid', input_dim=input_dims, kernel_regularizer=l2(0.01)))
     # model.add(GaussianNoise(0.05))
     model.add(Dropout(0.5))
     model.add(BatchNormalization())
-    # model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
-    # model.add(Dropout(0.5))
-    # model.add(BatchNormalization())
-    # model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
-    # model.add(Dropout(0.5))
+    model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
+    model.add(Dropout(0.5))
     # model.add(BatchNormalization())
     model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
     model.add(Dropout(0.5))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
     model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
     model.add(Dropout(0.5))
-    model.add(BatchNormalization())
+    # model.add(BatchNormalization())
+    model.add(Dense(64, activation='sigmoid', kernel_regularizer=l2(0.01)))
+    model.add(Dropout(0.5))
+    # model.add(BatchNormalization())
 
-    model.add(Dense(8, activation='linear'))
+    model.add(Dense(1, activation='linear'))
 
     return model
 

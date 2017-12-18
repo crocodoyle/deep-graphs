@@ -119,10 +119,13 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
     kf = KFold(n_splits=10)
 
+    y = y[:, 0]
+
     print('x:', x.shape)
     print('y:', y.shape)
 
-    for train_index, test_index in kf.split(range(x.shape[0])):
+    for k, (train_index, test_index) in enumerate(kf.split(range(x.shape[0]))):
+        print('FOLD:', )
         x_train = x[train_index]
         y_train = y[train_index]
         x_test = x[test_index]
@@ -139,9 +142,9 @@ for graphtype, n_roi in zip(graphtypes, rois):
         model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_loss", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
         lr_sched = lr_scheduler(model)
 
-        adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        adam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         model.compile(adam, 'mse', metrics=['mean_absolute_percentage_error', 'mean_squared_error'])
-        model.fit(x_train, y_train, epochs=500, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
+        model.fit(x_train, y_train, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
         model.load_weights(root_dir + 'best_model.hdf5')
 
@@ -178,7 +181,7 @@ for graphtype in graphtypes:
     bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
 
     plt.xticks(np.arange(1, len(scores)+1), score_labels, rotation=0, horizontalalignment='center', fontsize=20)
-    plt.yticks(np.arange(0, 10), np.arange(0., 1.), fontsize=20)
+    plt.yticks(np.arange(0, 1, 0.1), fontsize=20)
     plt.grid(zorder=0)
     plt.xlim(0, len(scores) + 1)
     plt.ylim(0, 1)

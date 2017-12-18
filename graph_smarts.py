@@ -74,6 +74,9 @@ for graphtype in graphtypes:
 
     r[graphtype]['deep'] = []
 
+train_losses = []
+val_losses = []
+
 for graphtype, n_roi in zip(graphtypes, rois):
     print('Running analysis for: ', graphtype)
 
@@ -125,7 +128,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
     print('y:', y.shape)
 
     for k, (train_index, test_index) in enumerate(kf.split(range(x.shape[0]))):
-        print('FOLD:', )
+        print('FOLD:', k)
         x_train = x[train_index]
         y_train = y[train_index]
         x_test = x[test_index]
@@ -142,10 +145,12 @@ for graphtype, n_roi in zip(graphtypes, rois):
         model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_loss", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
         lr_sched = lr_scheduler(model)
 
-        adam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        adam = Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         model.compile(adam, 'mse', metrics=['mean_absolute_percentage_error', 'mean_squared_error'])
-        model.fit(x_train, y_train, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
+        hist = model.fit(x_train, y_train, epochs=1200, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
+        train_losses.append(hist.history['loss'])
+        val_losses.append(hist.history['val_loss'])
         model.load_weights(root_dir + 'best_model.hdf5')
 
         predictions = model.predict(x_test)
@@ -197,3 +202,16 @@ for graphtype in graphtypes:
 
     results_dir = root_dir + '/results/'
     plt.savefig(results_dir + graphtype + '_boxplot.png')
+
+plt.close()
+
+for train_loss, val_loss in zip(train_losses, val_losses):
+    plt.plot(train_loss, color='pink', label='Train')
+    plt.plot(val_loss, color='darkred', label='Validation')
+    plt.grid(zorder=3)
+    plt.legend(shadow=True)
+    plt.tight_layout()
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Mean Squared Error (Validation)')
+
+plt.savefig(results_dir + graphtype + '_loss.png')

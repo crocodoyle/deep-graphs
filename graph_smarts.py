@@ -240,7 +240,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
             adam = Adam(lr=1e-5, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-6)
             model.compile(adam, 'logcosh', metrics=['mean_absolute_percentage_error', 'mean_squared_error', 'logcosh'])
-            hist = model.fit(x_train, y_train, epochs=100, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
+            hist = model.fit(x_train, y_train, batch_size=100, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
             train_losses.append(hist.history['loss'])
             val_losses.append(hist.history['val_loss'])
@@ -324,13 +324,13 @@ for targets in prediction_targets:
     for graphtype in graphtypes:
         print('Parcelation:', graphtype)
         for name in classifier_names + ['deep']:
-            print(name, np.mean(r[dataset][targets][graphtype][name]), np.std(r[dataset][targets][graphtype][name]))
-            print(name, np.mean(mse[dataset][targets][graphtype][name]), np.std(mse[dataset][targets][graphtype][name]))
+            print(name, np.mean(r['Templeton114'][targets][graphtype][name]), np.std(r['Templeton114'][targets][graphtype][name]))
+            print(name, np.mean(mse['Templeton255'][targets][graphtype][name]), np.std(mse['Templeton255'][targets][graphtype][name]))
 
 
 # R-SQUARED BOXPLOT
 plt.close()
-
+fig, ax = plt.subplots(2, 2, figsize=(32,12))
 for j, graphtype in enumerate(graphtypes):
     for i, targets in enumerate(prediction_targets):
         scores = []
@@ -342,7 +342,6 @@ for j, graphtype in enumerate(graphtypes):
             scores2.append(r['Templeton255'][targets][graphtype][name])
             score_labels.append(name)
 
-        fig, ax = plt.subplots(2, 2, sharey=True, sharex=True)
         plt.grid(zorder=0)
 
         bplot = ax[0, i].boxplot(scores, patch_artist=True, zorder=3)
@@ -360,11 +359,11 @@ for j, graphtype in enumerate(graphtypes):
         ax[0, i].set_xlabel('Classifier')
         ax[0, i].set_ylabel('$r^2$')
 
-        bplot = ax[0, i].boxplot(scores2, patch_artist=True, zorder=3)
+        bplot = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
-        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
+        ax[1, i].set_xticks(np.arange(1, len(scores2)+1), score_labels)
         ax[1, i].set_yticks(np.arange(0, 1.1, 0.1))
-        ax[1, i].set_xlim(0, len(scores) + 1)
+        ax[1, i].set_xlim(0, len(scores2) + 1)
         ax[1, i].set_ylim(0, 1)
 
         colors = ['lightcoral', 'pink', 'hotpink', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
@@ -388,6 +387,8 @@ for j, graphtype in enumerate(graphtypes):
 plt.close()
 
 # MEAN SQUARED ERROR BOXPLOT
+
+fig, ax = plt.subplots(2, 2, figsize=(32,12))
 for j, graphtype in enumerate(graphtypes):
     for i, targets in enumerate(prediction_targets):
         scores = []
@@ -399,7 +400,6 @@ for j, graphtype in enumerate(graphtypes):
             scores2.append(mse['Templeton255'][targets][graphtype][name])
             score_labels.append(name)
 
-        fig, ax = plt.subplots(2, 2, sharey=True, sharex=True)
         plt.grid(zorder=0)
 
         bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
@@ -416,12 +416,12 @@ for j, graphtype in enumerate(graphtypes):
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
+        bplot = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
-        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
-        ax[1, i].set_ylim(np.min(scores), np.max(scores))
-        ax[1, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5))
-        ax[1, i].set_xlim(0, len(scores) + 1)
+        ax[1, i].set_xticks(np.arange(1, len(scores2)+1), score_labels)
+        ax[1, i].set_ylim(np.min(scores2), np.max(scores2))
+        ax[1, i].set_yticks(np.linspace(0, np.max(scores2)*1.1, 5))
+        ax[1, i].set_xlim(0, len(scores2) + 1)
         ax[1, i].set_xlabel('Classifier')
         ax[1, i].set_ylabel('Mean Squared Error')
 

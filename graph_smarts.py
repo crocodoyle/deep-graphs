@@ -7,6 +7,7 @@ import csv, os, pickle
 import pandas as pd
 
 import numpy as np
+import time
 
 import sklearn
 from sklearn.model_selection import KFold
@@ -29,6 +30,8 @@ from deep_stuff import deep_mlp, lr_scheduler
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Adam
 
+
+start_time = time.time()
 
 root_dir = 'E:/brains/graphs/'
 targets_file_1 = 'Templeton114.csv'
@@ -454,3 +457,7 @@ for i, (train_loss, val_loss) in enumerate(zip(train_losses, val_losses)):
     plt.ylabel('Mean Squared Error (Validation)', fontsize=20)
 
 plt.savefig(results_dir + graphtype + '_loss.png')
+
+elapsed = start_time - time.time()
+
+print(np.mod(elapsed, 60), 'minutes elapsed')

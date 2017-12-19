@@ -330,8 +330,10 @@ for targets in prediction_targets:
 
 # R-SQUARED BOXPLOT
 plt.close()
-fig, ax = plt.subplots(2, 2, figsize=(32,12))
 for j, graphtype in enumerate(graphtypes):
+    fig, ax = plt.subplots(2, 2, figsize=(32, 12))
+    plt.grid(zorder=0)
+
     for i, targets in enumerate(prediction_targets):
         scores = []
         scores2 = []
@@ -341,8 +343,6 @@ for j, graphtype in enumerate(graphtypes):
             scores.append(r['Templeton114'][targets][graphtype][name])
             scores2.append(r['Templeton255'][targets][graphtype][name])
             score_labels.append(name)
-
-        plt.grid(zorder=0)
 
         bplot = ax[0, i].boxplot(scores, patch_artist=True, zorder=3)
 
@@ -359,7 +359,7 @@ for j, graphtype in enumerate(graphtypes):
         ax[0, i].set_xlabel('Classifier')
         ax[0, i].set_ylabel('$r^2$')
 
-        bplot = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
+        bplot2 = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
         ax[1, i].set_xticks(np.arange(1, len(scores2)+1), score_labels)
         ax[1, i].set_yticks(np.arange(0, 1.1, 0.1))
@@ -368,7 +368,7 @@ for j, graphtype in enumerate(graphtypes):
 
         colors = ['lightcoral', 'pink', 'hotpink', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
 
-        for patch, color in zip(bplot['boxes'], colors):
+        for patch, color in zip(bplot2['boxes'], colors):
             patch.set_facecolor(color)
 
         ax[1, i].set_xlabel('Classifier')
@@ -388,8 +388,9 @@ plt.close()
 
 # MEAN SQUARED ERROR BOXPLOT
 
-fig, ax = plt.subplots(2, 2, figsize=(32,12))
 for j, graphtype in enumerate(graphtypes):
+    fig, ax = plt.subplots(2, 2, figsize=(32, 12))
+    plt.grid(zorder=0)
     for i, targets in enumerate(prediction_targets):
         scores = []
         scores2 = []
@@ -399,8 +400,6 @@ for j, graphtype in enumerate(graphtypes):
             scores.append(mse['Templeton114'][targets][graphtype][name])
             scores2.append(mse['Templeton255'][targets][graphtype][name])
             score_labels.append(name)
-
-        plt.grid(zorder=0)
 
         bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
 
@@ -416,7 +415,7 @@ for j, graphtype in enumerate(graphtypes):
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        bplot = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
+        bplot2 = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
         ax[1, i].set_xticks(np.arange(1, len(scores2)+1), score_labels)
         ax[1, i].set_ylim(np.min(scores2), np.max(scores2))
@@ -425,7 +424,7 @@ for j, graphtype in enumerate(graphtypes):
         ax[1, i].set_xlabel('Classifier')
         ax[1, i].set_ylabel('Mean Squared Error')
 
-        for patch, color in zip(bplot['boxes'], colors):
+        for patch, color in zip(bplot2['boxes'], colors):
             patch.set_facecolor(color)
 
         for k in [0, 1]:

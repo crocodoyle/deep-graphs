@@ -240,7 +240,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
             adam = Adam(lr=1e-5, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-6)
             model.compile(adam, 'logcosh', metrics=['mean_absolute_percentage_error', 'mean_squared_error', 'logcosh'])
-            hist = model.fit(x_train, y_train, epochs=10, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
+            hist = model.fit(x_train, y_train, epochs=100, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
             train_losses.append(hist.history['loss'])
             val_losses.append(hist.history['val_loss'])
@@ -347,8 +347,8 @@ for j, graphtype in enumerate(graphtypes):
 
         bplot = ax[0, i].boxplot(scores, patch_artist=True, zorder=3)
 
-        ax[0, i].set_xticks(np.arange(1, len(scores)+1), score_labels, fontsize=20)
-        ax[0, i].set_yticks(np.arange(0, 1.1, 0.1), fontsize=20)
+        ax[0, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
+        ax[0, i].set_yticks(np.arange(0, 1.1, 0.1))
         ax[0, i].set_xlim(0, len(scores) + 1)
         ax[0, i].set_ylim(0, 1)
 
@@ -357,13 +357,13 @@ for j, graphtype in enumerate(graphtypes):
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        ax[0, i].set_xlabel('Classifier', fontsize=24)
-        ax[0, i].set_ylabel('$r^2$', fontsize=24)
+        ax[0, i].set_xlabel('Classifier')
+        ax[0, i].set_ylabel('$r^2$')
 
         bplot = ax[0, i].boxplot(scores2, patch_artist=True, zorder=3)
 
-        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels, fontsize=20)
-        ax[1, i].set_yticks(np.arange(0, 1.1, 0.1), fontsize=20)
+        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
+        ax[1, i].set_yticks(np.arange(0, 1.1, 0.1))
         ax[1, i].set_xlim(0, len(scores) + 1)
         ax[1, i].set_ylim(0, 1)
 
@@ -372,13 +372,18 @@ for j, graphtype in enumerate(graphtypes):
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        ax[1, i].set_xlabel('Classifier', fontsize=24)
-        ax[1, i].set_ylabel('$r^2$', fontsize=24)
+        ax[1, i].set_xlabel('Classifier')
+        ax[1, i].set_ylabel('$r^2$')
 
-        plt.subplot_adjust()
+        for k in [0, 1]:
+            ax[k, i].xaxis.label.set_fontsize(24)
+            ax[k, i].yaxis.label.set_fontsize(24)
+            for item in ([ax[k, i].title] + ax[k, i].get_xticklabels() + ax[k, i].get_yticklabels()):
+                item.set_fontsize(20)
 
-        results_dir = root_dir + '/results/'
-        plt.savefig(results_dir + graphtype + '_r2_boxplots.png')
+    plt.subplots_adjust()
+    results_dir = root_dir + '/results/'
+    plt.savefig(results_dir + graphtype + '_r2_boxplots.png')
 
 plt.close()
 
@@ -399,12 +404,12 @@ for j, graphtype in enumerate(graphtypes):
 
         bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
 
-        ax[0, i].set_xticks(np.arange(1, len(scores)+1), score_labels, fontsize=20)
+        ax[0, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
         ax[0, i].set_ylim(np.min(scores), np.max(scores))
-        ax[0, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5), fontsize=20)
+        ax[0, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5))
         ax[0, i].set_xlim(0, len(scores) + 1)
-        ax[0, i].set_xlabel('Classifier', fontsize=24)
-        ax[0, i].set_ylabel('Mean Squared Error', fontsize=24)
+        ax[0, i].set_xlabel('Classifier')
+        ax[0, i].set_ylabel('Mean Squared Error')
 
         colors = ['lightcoral', 'pink', 'hotpink', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
 
@@ -413,20 +418,25 @@ for j, graphtype in enumerate(graphtypes):
 
         bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
 
-        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels, fontsize=20)
+        ax[1, i].set_xticks(np.arange(1, len(scores)+1), score_labels)
         ax[1, i].set_ylim(np.min(scores), np.max(scores))
-        ax[1, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5), fontsize=20)
+        ax[1, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5))
         ax[1, i].set_xlim(0, len(scores) + 1)
-        ax[1, i].set_xlabel('Classifier', fontsize=24)
-        ax[1, i].set_ylabel('Mean Squared Error', fontsize=24)
+        ax[1, i].set_xlabel('Classifier')
+        ax[1, i].set_ylabel('Mean Squared Error')
 
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        plt.subplots_adjust()
+        for k in [0, 1]:
+            ax[k, i].xaxis.label.set_fontsize(24)
+            ax[k, i].yaxis.label.set_fontsize(24)
+            for item in ([ax[k, i].title] + ax[k, i].get_xticklabels() + ax[k, i].get_yticklabels()):
+                item.set_fontsize(20)
 
-        results_dir = root_dir + '/results/'
-        plt.savefig(results_dir + graphtype + '_mse_boxplot.png')
+    plt.subplots_adjust()
+    results_dir = root_dir + '/results/'
+    plt.savefig(results_dir + graphtype + '_mse_boxplot.png')
 
 plt.close()
 

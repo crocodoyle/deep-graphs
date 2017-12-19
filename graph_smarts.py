@@ -214,7 +214,6 @@ for graphtype, n_roi in zip(graphtypes, rois):
     for k, (train_index, test_index) in enumerate(kf.split(range(x.shape[0]))):
         print('FOLD:', k+1)
 
-
         # print('nans:', np.sum(np.isnan(x_train)))
         # print('infs:', np.sum(np.isinf(x_train)))
         #
@@ -244,7 +243,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
             adam = Adam(lr=1e-5, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-6)
             model.compile(adam, 'logcosh', metrics=['mean_absolute_percentage_error', 'mean_squared_error', 'logcosh'])
-            hist = model.fit(x_train, y_train, batch_size=100, epochs=1000, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
+            hist = model.fit(x_train, y_train, batch_size=100, epochs=1200, validation_split=0.1, callbacks=[model_checkpoint, lr_sched])
 
             train_losses.append(hist.history['loss'])
             val_losses.append(hist.history['val_loss'])
@@ -354,7 +353,7 @@ for j, graphtype in enumerate(graphtypes):
         ax[0, i].set_xlim(0, len(scores) + 1)
         ax[0, i].set_ylim(0, 1)
 
-        colors = ['lightcoral', 'pink', 'fuchsia', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
+        colors = ['lightcoral', 'pink', 'hotpink', 'red', 'darkred', 'firebrick', 'm', 'darkblue']
 
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
@@ -363,7 +362,6 @@ for j, graphtype in enumerate(graphtypes):
         ax[0, i].set_ylabel('$r^2$')
         ax[1, i].set_xlabel('Classifier')
         ax[1, i].set_ylabel('$r^2$')
-
 
         bplot2 = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
@@ -382,6 +380,10 @@ for j, graphtype in enumerate(graphtypes):
             for item in ([ax[k, i].title] + ax[k, i].get_xticklabels() + ax[k, i].get_yticklabels()):
                 item.set_fontsize(20)
 
+    ax[0, 0].set_title('All Measures')
+    ax[0, 1].set_title('CCI Only')
+    ax[0, 0].title.set_fontsize(32)
+    ax[0, 1].title.set_fontsize(32)
     plt.setp(ax, xticks=np.arange(1, len(scores2)+1), xticklabels=score_labels, yticks=np.arange(0, 1.1, 0.1))
 
     plt.subplots_adjust()
@@ -391,7 +393,6 @@ for j, graphtype in enumerate(graphtypes):
 plt.close()
 
 # MEAN SQUARED ERROR BOXPLOT
-
 for j, graphtype in enumerate(graphtypes):
     fig, ax = plt.subplots(2, 2, figsize=(32, 12))
     min = 100000
@@ -406,7 +407,8 @@ for j, graphtype in enumerate(graphtypes):
             scores2.append(mse['Templeton255'][targets][graphtype][name])
             score_labels.append(name)
 
-        bplot = plt.boxplot(scores, patch_artist=True, zorder=3)
+        bplot = ax[0, i].boxplot(scores, patch_artist=True, zorder=3)
+        bplot2 = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
 
         if np.min(scores) < min:
             min = np.min(scores)
@@ -421,6 +423,7 @@ for j, graphtype in enumerate(graphtypes):
         # ax[0, i].set_ylim(np.min(scores), np.max(scores))
         # ax[0, i].set_yticks(np.linspace(0, np.max(scores)*1.1, 5))
         ax[0, i].set_xlim(0, len(scores) + 1)
+        ax[1, i].set_xlim(0, len(scores2) + 1)
 
         ax[0, i].set_xlabel('Classifier')
         ax[0, i].set_ylabel('Mean Squared Error')
@@ -432,12 +435,10 @@ for j, graphtype in enumerate(graphtypes):
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
 
-        bplot2 = ax[1, i].boxplot(scores2, patch_artist=True, zorder=3)
-
         # ax[1, i].set_xticks(np.arange(1, len(scores2)+1), score_labels)
         # ax[1, i].set_ylim(np.min(scores2), np.max(scores2))
         # ax[1, i].set_yticks(np.linspace(0, np.max(scores2)*1.1, 5))
-        ax[1, i].set_xlim(0, len(scores2) + 1)
+
 
         for patch, color in zip(bplot2['boxes'], colors):
             patch.set_facecolor(color)
@@ -449,7 +450,11 @@ for j, graphtype in enumerate(graphtypes):
             for item in ([ax[k, i].title] + ax[k, i].get_xticklabels() + ax[k, i].get_yticklabels()):
                 item.set_fontsize(20)
 
-    plt.setp(ax, xticks=np.arange(1, len(scores2)+1), xticklabels=score_labels, yticks=np.linspace(min, max, 10))
+    ax[0, 0].set_title('All Measures')
+    ax[0, 1].set_title('CCI Only')
+    ax[0, 0].title.set_fontsize(32)
+    ax[0, 1].title.set_fontsize(32)
+    plt.setp(ax, xticks=np.arange(1, len(scores2)+1), xticklabels=score_labels, yticks=np.linspace(min, max, 10), ylim=(0, 0.5))
 
     plt.subplots_adjust()
     results_dir = root_dir + '/results/'

@@ -7,7 +7,7 @@ import keras.backend as K
 
 from keras.callbacks import LearningRateScheduler
 
-def deep_mlp(input_dims):
+def deep_mlp(input_dims, output_dims):
     model = Sequential()
 
     model.add(Dense(32, activation='sigmoid', input_dim=input_dims))
@@ -17,12 +17,12 @@ def deep_mlp(input_dims):
     model.add(Dense(32, activation='sigmoid'))
     model.add(GaussianNoise(0.04))
     model.add(Dropout(0.25))
+    model.add(BatchNormalization())
+    model.add(Dense(32, activation='sigmoid'))
+    model.add(GaussianNoise(0.01))
+    model.add(Dropout(0.5))
     # model.add(BatchNormalization())
-    # model.add(Dense(64, activation='sigmoid'))
-    # model.add(GaussianNoise(0.03))
-    # model.add(Dropout(0.5))
-    # model.add(BatchNormalization())
-    # model.add(Dense(64, activation='sigmoid'))
+    model.add(Dense(16, activation='sigmoid'))
     # model.add(GaussianNoise(0.02))
     # model.add(Dropout(0.5))
     # model.add(BatchNormalization())
@@ -31,7 +31,7 @@ def deep_mlp(input_dims):
     # model.add(Dropout(0.5))
     # model.add(BatchNormalization())
 
-    model.add(Dense(8, activation='linear'))
+    model.add(Dense(output_dims, activation='linear'))
 
     return model
 

@@ -42,8 +42,8 @@ test_dir = root_dir + 'Templeton255/'
 datasets = ['Templeton114', 'Templeton255']
 # graphtypes = ['AAL', 'desikan', 'CPAC200', 'HarvardOxford', 'JHU']
 # rois = [116, 70, 200, 111, 48]
-graphtypes = ['desikan']
-rois = [70]
+graphtypes = ['desikan', 'CPAC200', 'HarvardOxford']
+rois = [70, 200, 111]
 
 df1 = pd.read_csv(root_dir + targets_file_1, index_col=0)
 df2 = pd.read_csv(root_dir + targets_file_2, index_col=0)
@@ -238,7 +238,7 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
             model = deep_mlp(n_features, n_targets)
 
-            model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_mean_absolute_percentage_error", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
+            model_checkpoint = ModelCheckpoint(root_dir + 'best_model.hdf5', monitor="val_logcosh", verbose=0, save_best_only=True, save_weights_only=False, mode='min')
             lr_sched = lr_scheduler(model)
 
             adam = Adam(lr=1e-5, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-6)

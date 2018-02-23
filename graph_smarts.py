@@ -113,9 +113,9 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
     # y = df1.iloc[:, 1:11].as_matrix()
 
-    # x = np.zeros((n_subjects, (n_roi * n_roi // 2) + (n_roi // 2)), dtype='float32')
 
-    n_features = n_roi + (n_roi // 10) + 1
+    # n_features = n_roi + (n_roi // 10) + 1
+    n_features = (n_roi * n_roi // 2) + (n_roi // 2)
     x = np.zeros((n_subjects, n_features), dtype='float32')
     y = np.zeros((n_subjects, n_outputs), dtype='float32')
 
@@ -134,6 +134,18 @@ for graphtype, n_roi in zip(graphtypes, rois):
 
             g = nx.Graph(graph_data)
 
+            laplacian = nx.laplacian_matrix(g)
+            spectrum = nx.laplacian_spectrum(g)
+            connectivity = nx.fiedler_vector(g)
+
+            communities = nx.k_clique_communities(g, 5)
+
+            print('Laplacian shape:', laplacian.shape)
+            print('Spectrum shape:', spectrum.shape)
+
+            print('Connectivity:', connectivity)
+            print('Communities:', communities.shape)
+
             # feature extraction
             rich_coeff_at_degree = rich_club_coefficient(g, normalized=False)
             rich_keys = list(rich_coeff_at_degree.keys())
@@ -145,10 +157,10 @@ for graphtype, n_roi in zip(graphtypes, rois):
             # ramsay = ramsey_R2(g)
             assortivity = degree_assortativity_coefficient(g)
 
-            features = np.sum(graph_data, axis=0) # weighted degree sequence
+            weighted_degree = np.sum(graph_data, axis=0)
 
-            # x[i, :] = graph_data[np.triu_indices(n_roi)]
-            x[i, :] = np.hstack((features, rich_hist, assortivity))
+            x[i, :] = graph_data[np.triu_indices(n_roi)]
+            # x[i, :] = np.hstack((weighted_degree, rich_hist, assortivity))
 
             # print('nans:', np.sum(np.isnan(graph_data)))
             # print(np.max(x[i, :]), np.min(x[i, :]), np.mean(x[i, :]))
